@@ -40,7 +40,7 @@ void Overlay::setTopic(std::string topic)
   if (topic != "") {
     try {
       subscription = node->create_generic_subscription(
-        topic, msgType, rclcpp::QoS(10),
+        topic, msgType, rclcpp::SensorDataQoS(),
         std::bind(&Overlay::msgCallback, this, std::placeholders::_1));
       this->topic = topic;
       msgStorage.clear();
