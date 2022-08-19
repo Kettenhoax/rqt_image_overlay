@@ -33,7 +33,11 @@ class Compositor : public QObject
 public:
   Compositor(
     const ImageManager & imageManager, const OverlayManager & overlayManager,
-    float frequency, rclcpp::Duration window = rclcpp::Duration{1, 0});
+    float frequency, rclcpp::Duration window = rclcpp::Duration{0, 300000000});
+
+  void setWindow(rclcpp::Duration window);
+
+  rclcpp::Duration window() const;
 
   void setCallableSetImage(std::function<void(std::shared_ptr<QImage>)> setImage);
 
@@ -46,7 +50,7 @@ private:
 
   std::function<void(std::shared_ptr<QImage>)> setImage;
 
-  const rclcpp::Duration window;  // Wait window for collecting messages before composing image
+  rclcpp::Duration window_;  // Wait window for collecting messages before composing image
   rclcpp::Clock systemClock{RCL_SYSTEM_TIME};
 };
 
