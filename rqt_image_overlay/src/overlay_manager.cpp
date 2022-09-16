@@ -205,6 +205,7 @@ bool OverlayManager::removeRows(int row, int, const QModelIndex & parent)
 void OverlayManager::overlay(QImage & image, const OverlayTimeInfo & overlayTimeInfo) const
 {
   QPainter painter(&image);
+  painter.setRenderHint(QPainter::Antialiasing);
   for (auto & overlay : overlays) {
     if (overlay->isEnabled()) {
       painter.save();
