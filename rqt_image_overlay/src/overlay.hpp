@@ -20,6 +20,8 @@
 #include <string>
 #include "pluginlib/class_loader.hpp"
 #include "rclcpp/clock.hpp"
+#include "rclcpp/subscription.hpp"
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "msg_storage.hpp"
 
 // Forward Declaration
@@ -64,14 +66,18 @@ private:
   std::string topic;
   bool enabled = true;
   QColor color;
-  std::shared_ptr<rclcpp::GenericSubscription> subscription;
+  std::shared_ptr<rclcpp::GenericSubscription> dataSubscription;
+  rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr cameraSubscription;
   const std::shared_ptr<rclcpp::Node> & node;
 
   bool useHeaderTimestamp;
   MsgStorage<std::shared_ptr<rclcpp::SerializedMessage>> msgStorage;
+  sensor_msgs::msg::CameraInfo::SharedPtr camera;
   rclcpp::Clock systemClock{RCL_SYSTEM_TIME};
 
   void msgCallback(std::shared_ptr<rclcpp::SerializedMessage> msg);
+
+  void cameraCallback(sensor_msgs::msg::CameraInfo::SharedPtr);
 };
 
 }  // namespace rqt_image_overlay
