@@ -22,6 +22,7 @@
 #include "rclcpp/qos.hpp"
 #include "rclcpp/time.hpp"
 #include "rqt_image_overlay_layer/plugin_interface.hpp"
+#include "image_transport/camera_common.hpp"
 #include "overlay_time_info.hpp"
 
 namespace rqt_image_overlay
@@ -40,9 +41,18 @@ void Overlay::setTopic(std::string topic)
 {
   if (topic != "") {
     try {
-      subscription = node->create_generic_subscription(
+      dataSubscription = node->create_generic_subscription(
         topic, msgType, rclcpp::SensorDataQoS(),
         std::bind(&Overlay::msgCallback, this, std::placeholders::_1));
+
+      std::string dataTopic = rclcpp::expand_topic_or_service_name(
+        topic, node->get_name(), node->get_namespace());
+      std::string cameraTopic = image_transport::getCameraInfoTopic(dataTopic);
+
+      cameraSubscription =
+        node->create_subscription<sensor_msgs::msg::CameraInfo>(
+        cameraTopic, rclcpp::SensorDataQoS(),
+        std::bind(&Overlay::cameraCallback, this, std::placeholders::_1));
       this->topic = topic;
       msgStorage.clear();
     } catch (const std::exception & e) {
@@ -71,7 +81,16 @@ void Overlay::overlay(QPainter & painter, const OverlayTimeInfo & overlayTimeInf
   }
 
   if (msg) {
+    painter.save();
+    if (camera && camera->width > 0 && camera->height > 0) {
+      // TODO ensure camera and image share a frame_id
+      auto x_scale = painter.viewport().width() / static_cast<double>(camera->width);
+      auto y_scale = painter.viewport().height() / static_cast<double>(camera->height);
+      painter.translate(QPoint(camera->roi.x_offset * x_scale, camera->roi.y_offset * y_scale));
+      painter.scale(x_scale, y_scale);
+    }
     instance->overlay(painter, msg);
+    painter.restore();
   }
 }
 
@@ -114,6 +133,11 @@ void Overlay::msgCallback(std::shared_ptr<rclcpp::SerializedMessage> msg)
 {
   rclcpp::Time time = useHeaderTimestamp ? instance->getHeaderTime(msg) : systemClock.now();
   msgStorage.store(time, msg);
+}
+
+void Overlay::cameraCallback(std::shared_ptr<sensor_msgs::msg::CameraInfo> msg)
+{
+  camera = msg;
 }
 
 void Overlay::setColor(QColor color)
