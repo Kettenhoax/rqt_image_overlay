@@ -69,7 +69,8 @@ std::vector<ImageTopic> ListImageTopics(rclcpp::Node & node)
   for (auto & imageTopic : imageTopicCandidates) {
     try {
       auto subscriber = image_transport::create_subscription(
-        &node, imageTopic.topic, image_transport::Subscriber::Callback{}, imageTopic.transport);
+        &node, imageTopic.topic, image_transport::Subscriber::Callback{}, imageTopic.transport,
+        rmw_qos_profile_sensor_data);
 
       // Check if the image subscriber managed to successfully connect to any publishers
       // This considers cases where the msg type of publisher and subscriber don't match.
