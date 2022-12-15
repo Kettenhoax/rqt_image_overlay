@@ -84,8 +84,12 @@ void Overlay::overlay(QPainter & painter, const OverlayTimeInfo & overlayTimeInf
     painter.save();
     if (camera && camera->width > 0 && camera->height > 0) {
       // TODO ensure camera and image share a frame_id
-      auto x_scale = painter.viewport().width() / static_cast<double>(camera->width);
-      auto y_scale = painter.viewport().height() / static_cast<double>(camera->height);
+      auto binning_x = camera->binning_x == 0 ? 1 : camera->binning_x;
+      auto binning_y = camera->binning_y == 0 ? 1 : camera->binning_y;
+      auto camera_width = camera->width / binning_x;
+      auto camera_height = camera->height / binning_y;
+      auto x_scale = painter.viewport().width() / static_cast<double>(camera_width);
+      auto y_scale = painter.viewport().height() / static_cast<double>(camera_height);
       painter.translate(QPoint(camera->roi.x_offset * x_scale, camera->roi.y_offset * y_scale));
       painter.scale(x_scale, y_scale);
     }
